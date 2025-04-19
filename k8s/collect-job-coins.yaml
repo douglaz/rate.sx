@@ -1,0 +1,40 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: collect-data-cronjob-coins
+spec:
+  schedule: "0 * * * *"
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      template:
+        spec:
+          containers:
+          - name: collect-data
+            image: docker.io/library/ratesx:latest
+            imagePullPolicy: Never
+            command: ["python", "bin/collect_data_mng_v2.py", "coins"]
+            env:
+            - name: CMC_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: api-keys
+                  key: CMC_API_KEY
+            - name: MONGO_HOST
+              value: "mongodb"
+            - name: FIXER_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: api-keys
+                  key: FIXER_API_KEY
+            volumeMounts:
+            - name: config-volume
+              mountPath: /app/etc/ratesx-config.json
+              subPath: ratesx-config.json
+
+          restartPolicy: Never
+          volumes:
+          - name: config-volume
+            configMap:
+              name: ratesx-config
+

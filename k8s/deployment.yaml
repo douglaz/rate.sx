@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ratesx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ratesx
+  template:
+    metadata:
+      labels:
+        app: ratesx
+    spec:
+      containers:
+      - name: ratesx
+        image: docker.io/library/ratesx:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8004
+        env:
+        - name: PYTHONUNBUFFERED
+          value: "1"
