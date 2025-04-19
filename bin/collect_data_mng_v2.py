@@ -370,14 +370,10 @@ def fetch_currencies(token):
     return data
 
 
-config_filename = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-    "etc/ratesx-config.json",
-)
-config = json.loads(open(config_filename, "r").read())
+cmc_api_key = os.environ.get("CMC_API_KEY")
+fixer_api_key = os.environ.get("FIXER_API_KEY")
 
 db = client.ratesx
-
 
 if len(sys.argv) < 2:
     command = None
@@ -385,26 +381,18 @@ else:
     command = sys.argv[1]
 
 if command == "marketcap":
-
-    marketcap_data = fetch_marketcap(token=config["cmc"])
+    marketcap_data = fetch_marketcap(token=cmc_api_key)
     if marketcap_data:
         marketcap = db.marketcap
-        # print json.dumps(marketcap_data, indent=4)
         marketcap.insert_one(marketcap_data)
 
 elif command == "currencies":
-
     currencies = db.currencies
-    currencies_data = fetch_currencies(token=config["fixer"])
-    # print json.dumps(currencies_data, indent=4)
+    currencies_data = fetch_currencies(token=fixer_api_key)
     currencies.insert_one(currencies_data)
 
 elif command == "coins":
-
     coins = db.coins
-    coins_data = fetch_coins(token=config["cmc"])
-
+    coins_data = fetch_coins(token=cmc_api_key)
     if coins_data:
-        # pass
-        # print json.dumps(data, indent=4)
         coins.insert_many(coins_data)
