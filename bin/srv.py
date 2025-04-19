@@ -24,6 +24,12 @@ import dateutil.parser
 import json
 import datetime
 
+from pymongo import MongoClient
+# Use MONGO_HOST environment variable, default to 'localhost'
+mongo_host = os.environ.get("MONGO_HOST", "localhost")
+print(f"[ratesx] Using MongoDB host: {mongo_host}")
+client = MongoClient(host=mongo_host)
+
 import jinja2
 from flask import (
     Flask,

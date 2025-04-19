@@ -21,7 +21,8 @@ def get_entries_above_threshold_as_json(db_name: str, collection_name: str) -> s
         Exception: If there is an issue connecting to the database or retrieving the entries.
     """
     try:
-        client = MongoClient()
+        mongo_host = os.environ.get("MONGO_HOST", "localhost")
+        client = MongoClient(host=mongo_host)
         db = client[db_name]
         collection = db[collection_name]
 

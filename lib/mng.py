@@ -29,7 +29,8 @@ class MongoReader(object):  # pylint: disable=too-many-instance-attributes
 
     def __init__(self, config: Optional[Dict[str, Union[int, str]]] = None) -> None:
 
-        self.client = MongoClient()
+        mongo_host = os.environ.get("MONGO_HOST", "localhost")
+        self.client = MongoClient(host=mongo_host)
 
         ratesx_db = self.client.ratesx
         self.coins = ratesx_db.coins
@@ -80,21 +81,29 @@ class MongoReader(object):  # pylint: disable=too-many-instance-attributes
         if is_currency_coin:
             query.update({"symbol": currency})
             try:
-                price_symbol = (
+                cursor = (
                     self.coins.find(query, {"price_usd": 1})
                     .sort([("timestamp", -1)])
-                    .limit(1)[0]["price_usd"]
+                    .limit(1)
                 )
+                doc = next(cursor, None)
+                if doc is None:
+                    raise ValueError(f"Unknown coin/currency: {currency}")
+                price_symbol = doc["price_usd"]
             except IndexError:
                 raise ValueError(f"Unknown coin/currency: {currency}")
         else:
             query.update({currency: {"$exists": True}})
             try:
-                price_symbol = (
+                cursor = (
                     self.currencies.find(query, {currency: 1})
                     .sort([("timestamp", -1)])
-                    .limit(1)[0][currency]
+                    .limit(1)
                 )
+                doc = next(cursor, None)
+                if doc is None:
+                    raise ValueError(f"Unknown currency: {currency}")
+                price_symbol = doc[currency]
             except IndexError:
                 raise ValueError(f"Unknown currency: {currency}")
 
@@ -358,9 +367,10 @@ class MongoReader(object):  # pylint: disable=too-many-instance-attributes
             sort_key = [("timestamp", -1)]
         else:
             sort_key = [("timestamp", 1)]
-        data = [x for x in coins.find(query, {"timestamp": 1}).sort(sort_key).limit(1)]
-        if data != []:
-            return data[0]["timestamp"]
+        cursor = coins.find(query, {"timestamp": 1}).sort(sort_key).limit(1)
+        doc = next(cursor, None)
+        if doc is not None:
+            return doc["timestamp"]
         return None
 
 
@@ -372,7 +382,8 @@ class MongoWriter(object):
 
     def __init__(self):
 
-        self.client = MongoClient()
+        mongo_host = os.environ.get("MONGO_HOST", "localhost")
+        self.client = MongoClient(host=mongo_host)
 
         ratesx_db = self.client.ratesx
         self.coins = ratesx_db.coins

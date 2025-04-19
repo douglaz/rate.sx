@@ -60,7 +60,8 @@ sys.path.append("%s/lib/" % MYDIR)
 
 from pymongo import MongoClient
 
-client = MongoClient()
+mongo_host = os.environ.get("MONGO_HOST", "localhost")
+client = MongoClient(host=mongo_host)
 
 LOGFILE = "%s/log/fetch.log" % MYDIR
 logging.basicConfig(
