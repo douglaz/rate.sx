@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ratesx
+spec:
+  type: ClusterIP
+  selector:
+    app: ratesx
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8004
